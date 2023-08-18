@@ -53,8 +53,10 @@ def AccountType(address, w3, block_num):
         return 'blackhole'
     for c3 in range(3):
         try:
-            low_case_address = w3.toChecksumAddress(address)
+            low_case_address = w3.to_checksum_address(address)
+            # print(low_case_address)
             code = w3.eth.get_code(low_case_address).hex()
+            # print(code)
         except Exception as e:
             if c3 == 2:  # 判断缺失
                 print(block_num, '多次尝试无效，判断缺失')
@@ -226,7 +228,8 @@ def getERC20(temp, block_num, content, t, topics, item, w3, id, timestamp, produ
         if item['data'] == '0x':
             dict['value'] = '0'
         else:
-            dict['value'] = str(int(item['data'], 16))  # 16进制转换，value
+            # dict['value'] = str(int(item['data'], 16))  # 16进制转换，value
+            dict['value'] = str(int.from_bytes(item['data'], byteorder='big', signed=False))
         # dict['transHash'] = item['transactionHash'].hex()
         # dict['gasUsed'] = content['gasUsed']
         # dict['gaslimit'] = temp['gas']
@@ -341,7 +344,7 @@ def process():
         finally:
             lock.release()  
         # res = rates
-        producer = KafkaProducer(bootstrap_servers='hpc03:9092')
+        producer = KafkaProducer(bootstrap_servers='10.160.196.2:30002')
         while True:
             try:
                 data = w3.eth.get_block(block_num)
@@ -355,7 +358,7 @@ def process():
 w3 = Web3(Web3.HTTPProvider('http://localhost:8545'))
 parser = argparse.ArgumentParser()
 parser.add_argument('-p', '--processes', type=int, default=2)
-parser.add_argument('-s', '--d', type=int, default=0)
+parser.add_argument('-s', '--start', type=int, default=0)
 args = parser.parse_args()
 if args.start == 0:
     now = w3.eth.get_block_number()
